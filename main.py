@@ -58,6 +58,18 @@ class ComHandler:
     # 0102 unknown
     # either my packet capture wasn't as thorough as I'd like or those values don't correspond to my specific device
 
+    PRESETS = [
+        bytes.fromhex('01fdfe0401020103000000'),
+        bytes.fromhex('020a0604fffefd01000000'),
+        bytes.fromhex('030302fd03ff0302050000'),
+        bytes.fromhex('04fafdff01010406000000'),
+        bytes.fromhex('05fafd060403fbfa000000')
+    ] 
+    # payload format, all values are 1 byte: 
+    # preset number | first slider value | second slider value | ... | 7th slider value | 3 null bytes
+    # 50 | 100 | 400 | 1k | 2.5k | 6.3k | 16k (frequencies of sliders in order)
+    # preset 3 has a 0x05 for byte number 8 but i dont know why
+    
     def build_packet(self, sequence: bytes, command: bytes, payload: bytes) -> bytes:
         packet = bytearray()
         packet += sequence
@@ -145,7 +157,7 @@ class ComHandler:
         except ConnectionError:
             return ("Connection error", sequence, None)
 
-    def _bud_function_set(self, socket: bluetooth.BluetoothSocket, sequence, budstr: str, preset: str) -> (str | None, int, None):
+    def _bud_function_set(self, socket: bluetooth.BluetoothSocket, sequence: int, budstr: str, preset: str) -> (str | None, int, None):
         presets = {
             'control1': [self.NONE, self.PLAY_PAUSE, self.LAST_TRACK],
             'control2': [self.NONE, self.PLAY_PAUSE, self.NEXT_TRACK],
@@ -165,11 +177,29 @@ class ComHandler:
                 payload += param.to_bytes(1, 'little')
                 payload += command
                 packet = self.build_packet(int.to_bytes(sequence), self.EARBUD_FUNCTIONALITY_COMMAND, bytes(payload))
-                data = self._send_and_recieve(socket, packet)
+                self._send_and_recieve(socket, packet)
                 sequence += 1
             return (None, sequence, None)
         else:
             return ("Unknown preset/earbud", sequence, None)
+
+    def _set_preset(self, sock: bluetooth.BluetoothSocket, sequence: int, preset: str)->(str | None, int, None):
+        preset_dict = {
+            'standard': 1,
+            'heavybass': 2,
+            'rock': 3,
+            'jazz': 4,
+            'vocal': 5
+            }
+        choice = preset_dict.get(preset)
+        if choice:
+            choice_payload = self.PRESETS[choice]
+            packet = self.build_packet(int.to_bytes(sequence), self.SOUND_PROFILE_COMMAND, choice_payload)
+            self._send_and_recieve(sock, packet)
+            sequence += 1
+            return (None, sequence, None)
+        else:
+            return ('Selected preset does not exist.', sequence, None)
 
     def parse_command(self, command: str, socket: bluetooth.BluetoothSocket, sequence: int, *args)->(str | None, int, Response | None):
         command_dict = {
@@ -177,7 +207,8 @@ class ComHandler:
             "pair": lambda s, seq, *a: self._pair(s, seq),
             "GM": lambda s, seq, *a: self._toggle_feature(s, seq, *a, self.GAME_MODE_COMMAND, "Game mode"),
             "Spatial": lambda s, seq, *a: self._toggle_feature(s, seq, *a, self.SPATIAL_AUDIO_COMMAND, "SpatialAudio"),
-            "FN": self._bud_function_set
+            "FN": self._bud_function_set,
+            "SP": self._set_preset
             }
         if (command != 'pair' and self.paired == False):
             return ("You must pair with the device before doing that.", sequence, None) 

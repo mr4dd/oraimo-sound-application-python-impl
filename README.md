@@ -1,4 +1,5 @@
 # OpenBuds Python Testbed
+
 -----
 
 A functional CLI tool for managing earbud settings over RFCOMM. This testbed bypasses the official OEM app to provide a direct interface for remapping controls, toggling low-latency modes, and monitoring battery health.
@@ -22,13 +23,15 @@ Gesture Mapping: Preset-based remapping for single, double, and triple-tap funct
 ## Command Reference
 
 Once connected, use the following commands in the CLI:
-|Command  |	Arguments  |  Description |
-|---------|------------|--------------|
-|pair |	N/A |	Initiates the handshake and retrieves device metadata. |
-|GM | ON / OFF |	Toggles Game Mode (Low Latency). |
-|Spatial |	ON / OFF |	Toggles Spatial Audio processing. |
-|FN	| [side] [preset] |	Sets bud functions (Side: left/right). |
-|exit |	N/A |	Closes the socket and exits. |
+
+|Command  | Arguments       |  Description                                            |
+|---------|------------     |--------------                                           |
+|pair     | N/A             | Initiates the handshake and retrieves device metadata.  |
+|GM       | ON / OFF        | Toggles Game Mode (Low Latency).                        |
+|Spatial  | ON / OFF        | Toggles Spatial Audio processing.                       |
+|FN       | [side] [preset] | Sets bud functions (Side: left/right).                  |
+|SP       | [preset]        | Sets EQ presets (standard, heavybass, rock, jazz, vocal)|
+|exit     | N/A             | Closes the socket and exits.                            |
 
 Available Presets (FN)
 
@@ -63,6 +66,7 @@ Run:
 ```bash
 python main.py
 ```
+
 Connect: Enter your device's MAC address when prompted.
 
 Pair: You must run the pair command first to unlock further functionality.
