@@ -64,7 +64,6 @@ class ComHandler:
     NEXT_TRACK = bytes.fromhex('0104')
     VOL_UP = bytes.fromhex('0105')
     VOL_DOWN = bytes.fromhex('0106')
-    # 78:15:2D:5F:CE:43
     # 0101 unknown
     # 0102 unknown
     # either my packet capture wasn't as thorough as I'd like or those values don't correspond to my specific device
