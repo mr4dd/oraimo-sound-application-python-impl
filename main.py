@@ -171,7 +171,7 @@ class ComHandler:
             data = self._get_next_message(0.1)
             if data:
                 packet = self.parse_packet(data)
-                if packet.command == self.HEARTBEAT and packet.payload_size > 3:
+                if packet.command == self.HEARTBEAT and packet.payload_size > 3 and self.paired:
                     battery_data = self._parse_heartbeat(packet)
                     left = battery_data.battery_l
                     right = battery_data.battery_r
@@ -321,7 +321,7 @@ class ComHandler:
 
     def parse_command(self, command: str, sequence: int, *args)->(str | None, int, Payload | None):
         command_dict = {
-            "exit": lambda *_: _exit,
+            "exit": lambda *_: self._exit,
             "pair": lambda seq, *a: self._pair(seq),
             "GM": lambda seq, *a: self._toggle_feature(seq, *a, self.GAME_MODE_COMMAND, "Game mode"),
             "Spatial": lambda seq, *a: self._toggle_feature(seq, *a, self.SPATIAL_AUDIO_COMMAND, "SpatialAudio"),
